@@ -16,9 +16,22 @@
     "assetBundlePatterns": [
       "**/*"
     ],
+    "facebookScheme": "fb885252565340527",
+    "facebookAppId": "885252565340527",
+    "facebookDisplayName": "Mobile",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "host.exp.exponent",
+      "config": {
+        "googleSignIn": {
+          "reservedClientId": "com.googleusercontent.apps.745534255877-45ocmpoteegl2cbts697k71kuhddo4lb"
+        }
+      }
     },
+    "android": {
+      "package": "host.exp.exponent",
+      "googleServicesFile": "./google-services.json"
+  },
     "web": {
       "favicon": "./assets/favicon.png"
     }
