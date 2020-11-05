@@ -27,6 +27,8 @@ jobs:
       install:
         - yarn global add expo-cli
       script:
+        - ls -asl
         - expo login -u $EXPO_USERNAME -p $EXPO_PASSWORD --non-interactive
         - yarn
         - expo publish
+
