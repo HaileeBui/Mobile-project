@@ -23,7 +23,7 @@ const Login = () => {
           googleUser.accessToken);
         // Sign in with credential from the Google user.
         firebase.auth().signInWithCredential(credential)
-          .then(function (result) {
+          .then((result) => {
             console.log('user signin')
             if (result.additionalUserInfo.isNewUser) {
               firebase.database().ref('/users/' + result.user.uid)
@@ -35,7 +35,7 @@ const Login = () => {
                   last_name: result.additionalUserInfo.profile.family_name,
                   created: Date.now()
                 })
-                .then(function (snapshot) {
+                .then((snapshot) => {
 
                 });
             } else {
