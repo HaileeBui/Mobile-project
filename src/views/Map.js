@@ -1,10 +1,11 @@
 import React, {useEffect, useState} from 'react';
-import MapView, { PROVIDER_GOOGLE } from 'react-native-maps';
+import MapView, { PROVIDER_GOOGLE} from 'react-native-maps';
 import {
   StyleSheet,
   View,
   Dimensions,
 } from 'react-native';
+import Boat from '../components/Boat';
 
 const Map = () => {
 
@@ -13,10 +14,10 @@ const Map = () => {
   const LATITUDE_DELTA = 0.005;
   const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO;
 
-  const [ lastLatitude, setLastLatitude ] = useState(null);
-  const [ lastLongitude, setLastLongitude ] = useState(null);
-  const [ lastHeading, setLastHeading ] = useState(null);
-  const [ lastSpeed, setLastSpeed ] = useState(null);
+  const [ lastLatitude, setLastLatitude ] = useState(60.161822);
+  const [ lastLongitude, setLastLongitude ] = useState(24.917335);
+  const [ lastHeading, setLastHeading ] = useState(0);
+  const [ lastSpeed, setLastSpeed ] = useState(0);
 
   useEffect(() => {
 
@@ -36,7 +37,7 @@ const Map = () => {
       {
         enableHighAccuracy: true,
         maximumAge: 1000,
-        distanceFilter: 50,
+        distanceFilter: 1,
       },
     );
 
@@ -51,14 +52,21 @@ const Map = () => {
       provider={PROVIDER_GOOGLE}
       style={styles.map}
       region={{
-        latitude: ( lastLatitude ) || 60.161822,
-        longitude: (lastLongitude ) || 24.917335,
+        latitude:  lastLatitude ,
+        longitude: lastLongitude ,
         latitudeDelta:  LATITUDE_DELTA,
         longitudeDelta: LONGITUDE_DELTA
       }}
       showsUserLocation={true}
       followUserLocation={true}
     >
+      <Boat
+        latitude={ lastLatitude }
+        longitude={ lastLongitude }
+        heading={ lastHeading }
+        speed={ lastSpeed }
+        isMayDay={true}
+      />
     </MapView>
   </View>
 )
