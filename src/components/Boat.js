@@ -3,21 +3,24 @@ import PropTypes from 'prop-types';
 import { StyleSheet } from 'react-native';
 import { Marker } from "react-native-maps";
 
-// isMayDay state should be store some where.
-const Boat = ({latitude, longitude, heading, speed, isMayDay}) => {
+import userBoatImage from '../assets/boat.png'
+import userNeedRescue from '../assets/needRescue.png'
+
+//TODO fix boat png
+const Boat = ({ latitude, longitude, heading, speed, isMayDay}) => {
 
   const centerOfImage = {x:0.5,y:0.5}
-  //const boatImage = isMayDay ? onFire : userBoatImage;
+  const boatImage = isMayDay ? userNeedRescue : userBoatImage;
 
   return (
     <Marker
-      title={'User'}
+      //title={'User'}
       coordinate={{
         latitude: latitude,
         longitude: longitude,
       }}
       rotation={ heading }
-      //image={boatImage}
+      image={boatImage}
       anchor={centerOfImage}
     />
   )
