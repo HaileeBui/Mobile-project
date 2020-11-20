@@ -43,6 +43,8 @@ const getAllUsers = async () => {
   return users;
 }
 
+// takes lat and long,
+// order and filter
 const listenToChangesInRegion = async() => {
   firebase
     .database()

@@ -3,14 +3,15 @@ import PropTypes from 'prop-types';
 import { StyleSheet } from 'react-native';
 import { Marker } from "react-native-maps";
 
-import userBoatImage from '../assets/boat.png'
+import userBoatImage from '../assets/user.png'
 import userNeedRescue from '../assets/needRescue.png'
+import otherUserIcon from '../assets/otheruser.png'
 
 //TODO fix boat png
-const Boat = ({ latitude, longitude, heading, speed, isMayDay}) => {
+const Boat = ({ latitude, longitude, heading, speed, isMayDay, isThisUser}) => {
 
   const centerOfImage = {x:0.5,y:0.5}
-  const boatImage = isMayDay ? userNeedRescue : userBoatImage;
+  const boatImage = isMayDay ? userNeedRescue : (isThisUser ? userBoatImage : otherUserIcon);
 
   return (
     <Marker
@@ -38,8 +39,12 @@ Boat.propTypes = {
   heading: PropTypes.number.isRequired,
   speed: PropTypes.number.isRequired,
   isMayDay: PropTypes.bool,
+  isInDanger: PropTypes.bool,
+  isThisUser: PropTypes.bool,
 };
 
 Boat.defaultProps = {
-  isMayDay: false
+  isMayDay: false,
+  isInDanger: false,
+  isThisUser: false,
 };
