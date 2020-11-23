@@ -8,14 +8,14 @@ import userNeedRescue from '../assets/needRescue.png'
 import otherUserIcon from '../assets/otheruser.png'
 
 //TODO fix boat png
-const Boat = ({ latitude, longitude, heading, speed, isMayDay, isThisUser}) => {
+const Boat = ({ latitude, longitude, heading, speed, hasMayDay: hasMayDay, isThisUser, title}) => {
 
   const centerOfImage = {x:0.5,y:0.5}
-  const boatImage = isMayDay ? userNeedRescue : (isThisUser ? userBoatImage : otherUserIcon);
+  const boatImage = hasMayDay ? userNeedRescue : (isThisUser ? userBoatImage : otherUserIcon);
 
   return (
     <Marker
-      //title={'User'}
+      //title={title}
       coordinate={{
         latitude: latitude,
         longitude: longitude,
@@ -37,14 +37,14 @@ Boat.propTypes = {
   latitude: PropTypes.number.isRequired,
   longitude: PropTypes.number.isRequired,
   heading: PropTypes.number.isRequired,
-  speed: PropTypes.number.isRequired,
-  isMayDay: PropTypes.bool,
+  speed: PropTypes.number,
+  hasMayDay: PropTypes.bool,
   isInDanger: PropTypes.bool,
   isThisUser: PropTypes.bool,
 };
 
 Boat.defaultProps = {
-  isMayDay: false,
+  hasMayDay: false,
   isInDanger: false,
   isThisUser: false,
 };

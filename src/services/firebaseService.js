@@ -1,46 +1,34 @@
 import firebase from 'firebase';
 import { LogBox } from 'react-native';
 
-const listenToUserValuesChange = () => {
+const getAllVessels = async () => {
 
-  firebase
-  .database()
-  .ref('/users')
-  .on('value', snapshot => {
-    console.log('A change has been observed', snapshot.val());
-  }, error => {
-    console.log('ERROR ' + JSON.stringify(error));
-  });
-}
-
-const getAllUsers = async () => {
-
-  let users = [];
+  let vessels = [];
   await firebase
   .database()
-  .ref('/users')
+  .ref('/vessels')
   .once('value')
     .then( ( snapshot ) => {
-    //console.log('Initial user data', snapshot.val());
-    //console.log('ALL_USERS ', JSON.stringify(snapshot));
+
     let entries = [];
-      snapshot.forEach ( user => {
-        console.log('Initial user data key ', user.key);
-        console.log('Initial user data', user.val());
+      snapshot.forEach ( vessel => {
 
-        //console.log('longitude ' + user.val().longitude);
-        //console.log('latitude ' + user.val().latitude);
-        entries.push( {
-          id: user.key,
-          latitude  :  user.val().latitude ,
-          longitude : user.val().longitude ,
-        });
+        if ( !(vessel.val().userId === firebase.auth().currentUser.uid) ) {
+          entries.push( {
+            id: vessel.key,
+            latitude  :  vessel.val().latitude ,
+            longitude : vessel.val().longitude ,
+            heading: vessel.val().heading,
+            speed: vessel.val().speed,
+            hasMayDay: vessel.val().hasMayDay,
+          });
+        }
       })
-    users = entries;
-    //console.log(users[0].longitude)
 
+    vessels = entries;
   })
-  return users;
+
+  return vessels;
 }
 
 // takes lat and long,
@@ -48,56 +36,40 @@ const getAllUsers = async () => {
 const listenToChangesInRegion = async() => {
   firebase
     .database()
-    .ref('/users')
+    .ref('/vessels')
     .orderByChild('latitude')
     .startAt(60.1581)
     .endAt(60.1590)
     .on('child_changed', snapshot => {
       console.log('A Location change has been observed', snapshot.val());
   })
-}// startLatitude, endLatitude, startLongitude, endLongitude
-const listenToLocationChange = async () => {
-  let updatedLocation = []
-  const users = await firebase.database().
-    ref('/users').
-    orderByChild('latitude').
-    startAt(60.1581).
-    endAt(60.1590).
-    on('child_changed', snapshot => {
-      console.log('A Location change has been observed', snapshot.val());
-      let data = [];
-      data.push(snapshot.val());
-      //console.log('UPDATE ' + JSON.stringify(data[0]));
-      updatedLocation = data;
-      //console.log('UPDATE AFTER ' + updatedLocation.length);
-      console.log('UPDATE AFTER ' + JSON.stringify(updatedLocation[0]));
-      return updatedLocation;
-
-    });
-  console.log('BEFORE RETURN ' + JSON.stringify(updatedLocation[0]));
-  console.log('BEFORE RETURN users' , users);
-  //return updatedLocation
-  return users
 }
 
-const detachAllFirebaseCallbacks = () =>{
-  console.log("Detaching all firebase call backs")
+const detachAllFirebaseCallbacks = () => {
   firebase.database()
-    .ref('/users')
+    .ref('/vessels')
     .off()
 }
 
-export const firebaseService = {
-  getAllUsers,
-  listenToUserValuesChange,
-  listenToLocationChange,
-  listenToChangesInRegion,
-  detachAllFirebaseCallbacks,
+const updateVessel = (latitude, longitude, heading, speed) => {
+  //let newVesselKey = firebase.database().ref('vessels').child(firebase.auth().currentUser.uid).push().key;
+  firebase.database().ref('/vessels/' + firebase.auth().currentUser.uid).update({
+    userId: firebase.auth().currentUser.uid,
+    latitude: latitude,
+    longitude: longitude,
+    heading: heading,
+    speed: speed,
+  }).then(r => {
+    console.log('Vessel location uploaded');
+  })
 }
 
-
-
-//import _ from 'lodash';
+export const firebaseService = {
+  getAllVessels,
+  listenToChangesInRegion,
+  detachAllFirebaseCallbacks,
+  updateVessel,
+}
 
 LogBox.ignoreLogs (['Setting a timer']);
 const _console = { ...console };
