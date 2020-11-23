@@ -5,6 +5,7 @@ import {
   View,
   Dimensions,
   Text,
+  Switch,
 } from 'react-native';
 import firebase from 'firebase';
 import { DOMParser } from 'xmldom'
@@ -12,6 +13,7 @@ import { DOMParser } from 'xmldom'
 import Boat from '../components/Boat';
 import { digiTrafficService, firebaseService } from '../services';
 import { Distance } from '../utilities';
+import { mapStyles } from '../styles'
 
 
 const Map = () => {
@@ -30,6 +32,7 @@ const Map = () => {
   const [ vessels, setVessels ] = useState([]);
   const [ isCollisionDetected, setIsCollisionDetected ] = useState(false);
   const [ alertRadius , setAlertRadius ] = useState(0.900); // In Kilometers
+  const [ isDarkModeEnabled, setIsDarkModeEnabled ] = useState(false);
 
   const loadVessels = () => {
 
@@ -41,6 +44,7 @@ const Map = () => {
     });
   }
 
+  const toggleSwitch = () => setIsDarkModeEnabled(previousState => !previousState);
 
   useEffect(() => {
 
@@ -126,6 +130,7 @@ const Map = () => {
         longitudeDelta: LONGITUDE_DELTA
       }}
       showsUserLocation={true}
+      customMapStyle={( isDarkModeEnabled ? mapStyles.darkMode : [] )}
     >
       <Boat
         key={0}
@@ -170,6 +175,18 @@ const Map = () => {
         {lastSpeed * METER_TO_KNOT_CONSTANT} Knots
       </Text>
     </View>
+    <View style={styles.switchContainer}>
+      <Text  style={styles.bubble}>
+        Dark Mode :
+      </Text>
+      <Switch
+        trackColor={{ false: "#767577", true: "#81b0ff" }}
+        thumbColor={isDarkModeEnabled ? "#f5dd4b" : "#f4f3f4"}
+        ios_backgroundColor="#3e3e3e"
+        onValueChange={toggleSwitch}
+        value={isDarkModeEnabled}
+      />
+    </View>
 
   </View>
 )
@@ -185,16 +202,22 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
   },
   speedContainer: {
-    flexDirection: 'column',
-    marginVertical: 20,
+    flexDirection: 'row',
+    marginVertical: 6,
+    backgroundColor: 'transparent',
+  },
+  switchContainer: {
+    flexDirection: 'row',
+    marginVertical: 6,
+    backgroundColor: 'transparent',
   },
   bubble: {
     backgroundColor: 'rgba(255,255,255,0.5)',
     paddingHorizontal: 18,
-    paddingVertical: 2,
-    borderRadius: 0,
+    paddingVertical: 6,
+    borderRadius: 20,
     color: 'green',
-    fontSize: 12,
+    fontSize: 20, fontWeight: 'bold'
   },
 });
 
