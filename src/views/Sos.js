@@ -33,7 +33,7 @@ const Sos = () => {
       cancelTime: Date().toLocaleString(),
       rescued: false,
     });
-    await firebase.database().ref('/vessels/' + firebase.auth().currentUser.uid).update({
+    firebase.database().ref('/vessels/' + firebase.auth().currentUser.uid).update({
       hasMayDay: true,
     })
     alert();
