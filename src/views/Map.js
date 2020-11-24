@@ -11,20 +11,17 @@ import { Distance } from '../utilities';
 import { mapStyles } from '../styles';
 import { finnshTransportService } from '../services/finnishTransportService';
 
-
 const apiURL = 'https://pfa.foreca.com';
 
 const Map = () => {
-
-  const {width, height} = Dimensions.get('window');
+  const { width, height } = Dimensions.get('window');
   const ASPECT_RATIO = width / height;
   const LATITUDE_DELTA = 0.019;
   const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO;
   const METER_TO_KILOMETER_CONSTANT = 3.6;
   const METER_TO_KNOT_CONSTANT = 1.9438445;
 
-  const [location, setLocation] = useState(null);
-  const [weather, setWeather] = useState({current: {}});
+  const [weather, setWeather] = useState({ current: {} });
   const [lastLatitude, setLastLatitude] = useState(60.161822);
   const [lastLongitude, setLastLongitude] = useState(24.917335);
   const [lastHeading, setLastHeading] = useState(0);
@@ -37,7 +34,6 @@ const Map = () => {
   const [ navigationLines, setNavigationLines ] = useState([]);
 
   const loadVessels = () => {
-
     firebaseService.getAllVessels().then(vessels => {
       setVessels(vessels);
       const proximityAlert = vessels.some(
@@ -49,37 +45,6 @@ const Map = () => {
 
   const toggleSwitch = () => setIsDarkModeEnabled(
     previousState => !previousState);
-
-  /*const getToken = () => {
-    const data = { user: 'ngoc-bui', password: 'yySqoYelUSsKuPHoaP' }
-    fetch(apiURL + '/authorize/token?user=' + data.user + '&password=' + data.password)
-      .then(async response => {
-        const result = await response.json();
-        if (!response.ok) {
-          // get error message from body or default to response statusText
-          const error = (result && result.message) || response.statusText;
-          return Promise.reject(error);
-        }
-        setToken(result.access_token);
-        console.log('result', result.access_token);
-      })
-      .catch(error => {
-        console.error('fetching token error', error);
-      });
-  };*/
-
-  /* const getLocation = () => {
-     navigator.geolocation.getCurrentPosition(
-       position => {
-         let loc = JSON.stringify(position);
-         console.log('location', position);
-         setLocation(loc);
-         console.log('location 38,', location);
-       },
-       error => Alert.alert(error.message),
-       { enableHighAccuracy: true, timeout: 20000, maximumAge: 1000 }
-     );
-   }*/
 
   const getWeather = async () => {
     //const data = { user: 'ngoc-bui', password: 'yySqoYelUSsKuPHoaP' }
@@ -123,14 +88,21 @@ const Map = () => {
   }
 
   useEffect(() => {
+    //fetch weather API every 3sec
+    /*setInterval(() => {
+      getWeather();
+      //console.log('weather updated');
+    }, 30000);
+    */
     getWeather();
+
     loadVessels();
     fetchLightBeacons();
     fetchNavigationLines();
 
     let watchID = navigator.geolocation.watchPosition(
       //successCallback
-      ({coords}) => {
+      ({ coords }) => {
 
         setLastLatitude(coords.latitude);
         setLastLongitude(coords.longitude);
@@ -193,10 +165,12 @@ const Map = () => {
       navigator.geolocation.clearWatch(watchID);
     };
   }, []);
+//   <WeatherContainer weather={weather} />
 
   return (
     <Container>
-      <WeatherContainer weather={weather}/>
+      <WeatherContainer weather={weather} />
+
       <View style={styles.mapContainer}>
         <MapView
           provider={PROVIDER_GOOGLE}
@@ -244,27 +218,22 @@ const Map = () => {
         </MapView>
         <View style={styles.speedContainer}>
           <Text style={styles.bubble}>
-            {lastSpeed * METER_TO_KILOMETER_CONSTANT} Km/h,
+            {(lastSpeed * METER_TO_KILOMETER_CONSTANT).toFixed(3)} Km/h
           </Text>
           <Text style={styles.bubble}>
-            {lastSpeed * METER_TO_KNOT_CONSTANT} Knots
+            {(lastSpeed * METER_TO_KNOT_CONSTANT).toFixed(3)} Knots
           </Text>
         </View>
         <View style={styles.switchContainer}>
-          <Text style={styles.bubble}>
-            Dark Mode :
-          </Text>
           <Switch
-            trackColor={{false: '#767577', true: '#81b0ff'}}
-            thumbColor={isDarkModeEnabled ? '#f5dd4b' : '#f4f3f4'}
+            trackColor={{ false: '#767577', true: '#f5f0e1' }}
+            thumbColor={isDarkModeEnabled ? '#ffc13b' : '#ffc13b'}
             ios_backgroundColor="#3e3e3e"
             onValueChange={toggleSwitch}
             value={isDarkModeEnabled}
           />
         </View>
       </View>
-
-
     </Container>
   );
 };
@@ -296,11 +265,11 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   bubble: {
-    backgroundColor: 'rgba(255,255,255,0.5)',
+    backgroundColor: '#ffc13b',
     paddingHorizontal: 18,
     paddingVertical: 6,
     borderRadius: 20,
-    color: 'green',
+    color: '#1e3d59',
     fontSize: 20, fontWeight: 'bold',
   },
 });
