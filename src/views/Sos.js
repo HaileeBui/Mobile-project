@@ -33,6 +33,9 @@ const Sos = () => {
       cancelTime: Date().toLocaleString(),
       rescued: false,
     });
+    await firebase.database().ref('/vessels/' + firebase.auth().currentUser.uid).update({
+      hasMayDay: true,
+    })
     alert();
   }
 
@@ -54,12 +57,18 @@ const Sos = () => {
         active: false,
         cancelTime: Date().toLocaleString()
       })
+      firebase.database().ref('/vessels/' + firebase.auth().currentUser.uid).update({
+        hasMayDay: false,
+      });
     } else if (key == 'rescued') {
       firebase.database().ref('/sos/' + firebase.auth().currentUser.uid).update({
         active: false,
         rescued: true,
         cancelTime: Date().toLocaleString()
       })
+      firebase.database().ref('/vessels/' + firebase.auth().currentUser.uid).update({
+        hasMayDay: false,
+      });
     }
   }
 
