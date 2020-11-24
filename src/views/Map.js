@@ -1,14 +1,15 @@
 import React, {useEffect, useState} from 'react';
-import MapView, {Callout, Circle, PROVIDER_GOOGLE} from 'react-native-maps';
+import MapView, { Circle, PROVIDER_GOOGLE, } from 'react-native-maps';
 import Constants from 'expo-constants';
-import {Text, Container, View} from 'native-base';
+import { Text, Container, View } from 'native-base';
 import firebase from 'firebase';
 import { StyleSheet, Dimensions, Switch } from 'react-native';
 
-import { Boat, WeatherContainer } from '../components';
-import {digiTrafficService, firebaseService} from '../services';
-import {Distance} from '../utilities';
-import {mapStyles} from '../styles';
+import { Boat, WeatherContainer, LightBeacon, NavigationLine} from '../components';
+import { digiTrafficService, firebaseService } from '../services';
+import { Distance } from '../utilities';
+import { mapStyles } from '../styles';
+import { finnshTransportService } from '../services/finnishTransportService';
 
 
 const apiURL = 'https://pfa.foreca.com';
@@ -17,7 +18,7 @@ const Map = () => {
 
   const {width, height} = Dimensions.get('window');
   const ASPECT_RATIO = width / height;
-  const LATITUDE_DELTA = 0.005;
+  const LATITUDE_DELTA = 0.019;
   const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO;
   const METER_TO_KILOMETER_CONSTANT = 3.6;
   const METER_TO_KNOT_CONSTANT = 1.9438445;
@@ -32,6 +33,8 @@ const Map = () => {
   const [isCollisionDetected, setIsCollisionDetected] = useState(false);
   const [alertRadius, setAlertRadius] = useState(0.900); // In Kilometers
   const [isDarkModeEnabled, setIsDarkModeEnabled] = useState(false);
+  const [ lightBeacons, setLightBeacons ] = useState([])
+  const [ navigationLines, setNavigationLines ] = useState([]);
 
   const loadVessels = () => {
 
@@ -105,9 +108,25 @@ const Map = () => {
     }
   };
 
+  const fetchLightBeacons = async () => {
+    await finnshTransportService.fetchLightBeacons()
+    .then( lightBeacons => {
+      setLightBeacons(lightBeacons);
+    });
+  }
+
+  const fetchNavigationLines = async () => {
+    await finnshTransportService.fetchNavigationLines()
+    .then( navigationLines => {
+      setNavigationLines(navigationLines);
+    });
+  }
+
   useEffect(() => {
     getWeather();
     loadVessels();
+    fetchLightBeacons();
+    fetchNavigationLines();
 
     let watchID = navigator.geolocation.watchPosition(
       //successCallback
@@ -213,6 +232,15 @@ const Map = () => {
               title={vessel.id}
             />
           ))}
+
+          <LightBeacon
+            lightBeacons={lightBeacons}
+          />
+
+          <NavigationLine
+            navigationLines={navigationLines}
+          />
+
         </MapView>
         <View style={styles.speedContainer}>
           <Text style={styles.bubble}>
