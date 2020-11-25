@@ -3,7 +3,7 @@ import Map from '../views/Map';
 import Sos from '../views/Sos';
 import Home from '../views/Home';
 import Login from '../views/Login';
-
+import {Button} from 'react-native'
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 const Stack = createStackNavigator();

@@ -1,19 +1,18 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState, useLayoutEffect } from 'react';
 import MapView, { Circle, PROVIDER_GOOGLE, } from 'react-native-maps';
 import Constants from 'expo-constants';
-import { Text, Container, View } from 'native-base';
+import { Text, Container, View, Icon } from 'native-base';
 import firebase from 'firebase';
-import { StyleSheet, Dimensions, Switch } from 'react-native';
-
-import { Boat, WeatherContainer, LightBeacon, NavigationLine} from '../components';
+import { StyleSheet, Dimensions, TouchableHighlight } from 'react-native';
+import { Boat, WeatherContainer, LightBeacon, NavigationLine } from '../components';
 import { digiTrafficService, firebaseService } from '../services';
 import { Distance } from '../utilities';
 import { mapStyles } from '../styles';
 import { finnshTransportService } from '../services/finnishTransportService';
-
 const apiURL = 'https://pfa.foreca.com';
 
-const Map = () => {
+const Map = ({ navigation }) => {
+
   const { width, height } = Dimensions.get('window');
   const ASPECT_RATIO = width / height;
   const LATITUDE_DELTA = 0.019;
@@ -30,8 +29,8 @@ const Map = () => {
   const [isCollisionDetected, setIsCollisionDetected] = useState(false);
   const [alertRadius, setAlertRadius] = useState(0.900); // In Kilometers
   const [isDarkModeEnabled, setIsDarkModeEnabled] = useState(false);
-  const [ lightBeacons, setLightBeacons ] = useState([])
-  const [ navigationLines, setNavigationLines ] = useState([]);
+  const [lightBeacons, setLightBeacons] = useState([])
+  const [navigationLines, setNavigationLines] = useState([]);
 
   const loadVessels = () => {
     firebaseService.getAllVessels().then(vessels => {
@@ -47,7 +46,6 @@ const Map = () => {
     previousState => !previousState);
 
   const getWeather = async () => {
-    //const data = { user: 'ngoc-bui', password: 'yySqoYelUSsKuPHoaP' }
     try {
       const tokenObject = await fetch(apiURL + '/authorize/token?user=' +
         Constants.manifest.extra.user + '&password=' +
@@ -75,17 +73,32 @@ const Map = () => {
 
   const fetchLightBeacons = async () => {
     await finnshTransportService.fetchLightBeacons()
-    .then( lightBeacons => {
-      setLightBeacons(lightBeacons);
-    });
+      .then(lightBeacons => {
+        setLightBeacons(lightBeacons);
+      });
   }
 
   const fetchNavigationLines = async () => {
     await finnshTransportService.fetchNavigationLines()
-    .then( navigationLines => {
-      setNavigationLines(navigationLines);
-    });
+      .then(navigationLines => {
+        setNavigationLines(navigationLines);
+      });
   }
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <TouchableHighlight
+          style={{ margin: 10}}
+          onPress={() => { toggleSwitch() }}>
+          <View style={{ flex: 1, flexDirection: 'row' }}>
+            <Text style={{ marginRight: 5, marginTop: 2, fontSize: 20 }}>Mode</Text>
+            <Icon name='md-contrast' />
+          </View>
+        </TouchableHighlight>
+      )
+    });
+  }, [navigation], toggleSwitch);
+
 
   useEffect(() => {
     //fetch weather API every 3sec
@@ -165,7 +178,7 @@ const Map = () => {
       navigator.geolocation.clearWatch(watchID);
     };
   }, []);
-//   <WeatherContainer weather={weather} />
+  //   <WeatherContainer weather={weather} />
 
   return (
     <Container>
@@ -223,15 +236,6 @@ const Map = () => {
           <Text style={styles.bubble}>
             {(lastSpeed * METER_TO_KNOT_CONSTANT).toFixed(3)} Knots
           </Text>
-        </View>
-        <View style={styles.switchContainer}>
-          <Switch
-            trackColor={{ false: '#767577', true: '#f5f0e1' }}
-            thumbColor={isDarkModeEnabled ? '#ffc13b' : '#ffc13b'}
-            ios_backgroundColor="#3e3e3e"
-            onValueChange={toggleSwitch}
-            value={isDarkModeEnabled}
-          />
         </View>
       </View>
     </Container>
