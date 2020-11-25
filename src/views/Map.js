@@ -213,6 +213,7 @@ const Map = () => {
 
           <NavigationLine
             navigationLines={navigationLines}
+            isDarkMode={isDarkModeEnabled}
           />
 
         </MapView>

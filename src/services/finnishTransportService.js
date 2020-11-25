@@ -12,10 +12,10 @@ const fetchLightBeacons = async () => {
     then(string => {
       const parser = new DOMParser();
       const xmlDoc = parser.parseFromString(string, 'text/xml');
-      const numberOfPlaceMarks = xmlDoc.getElementsByTagName('Placemark');
-      //console.log('Number of Placemarks', numberOfPlaceMarks);
+      const numberOfPlaceMarks = xmlDoc.getElementsByTagName('Placemark').length;
+      console.log('Number of Placemarks', numberOfPlaceMarks);
       const lightCoordinates = [];
-      for (let index = 0; index < 50; index++) {
+      for (let index = 0; index < numberOfPlaceMarks; index++) {
 
         let coordinateAsString = xmlDoc.getElementsByTagName(
           'Placemark')[index].getElementsByTagName(
@@ -48,7 +48,7 @@ const fetchNavigationLines = async () => {
       console.log('Number of Multigeometry', numberOfMultiGeometry);
 
       const navigationLine = [];
-      for (let index = 0; index < 50; index++) {
+      for (let index = 0; index < numberOfMultiGeometry; index++) {
 
         let coordinateAsString = xmlDoc.getElementsByTagName(
           'MultiGeometry')[index].getElementsByTagName(
@@ -59,8 +59,8 @@ const fetchNavigationLines = async () => {
         let innerIndex = 0;
         while (innerIndex < coordinateAsString.length ) {
           coordinates.push({
-            longitude:  +coordinateAsString[0],
-            latitude: +coordinateAsString[1],
+            longitude:  +coordinateAsString[innerIndex],
+            latitude: +coordinateAsString[innerIndex+1],
           });
           innerIndex += 2
         }
