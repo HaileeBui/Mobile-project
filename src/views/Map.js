@@ -88,7 +88,9 @@ const Map = ({ navigation }) => {
     navigation.setOptions({
       headerRight: () => (
         <TouchableHighlight
-          style={{ margin: 10}}
+          activeOpacity={0.6}
+          underlayColor='#ffc13b'
+          style={{ margin: 10, padding: 5}}
           onPress={() => { toggleSwitch() }}>
           <View style={{ flex: 1, flexDirection: 'row' }}>
             <Text style={{ marginRight: 5, marginTop: 2, fontSize: 20 }}>Mode</Text>
