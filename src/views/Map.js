@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useLayoutEffect } from 'react';
+import React, {useEffect, useState} from 'react';
 import MapView, { Circle, PROVIDER_GOOGLE, } from 'react-native-maps';
 import Constants from 'expo-constants';
 import { Text, Container, View, Icon } from 'native-base';
@@ -71,18 +71,22 @@ const Map = ({ navigation }) => {
     }
   };
 
-  const fetchLightBeacons = async () => {
-    await finnshTransportService.fetchLightBeacons()
-      .then(lightBeacons => {
-        setLightBeacons(lightBeacons);
-      });
+  const updateNavigationLines =  (latestLatitude, latestLongitude) => {
+    finnshTransportService.updateNavigationLines(latestLongitude,latestLatitude)
+      .then( navigationLines => {
+        if ( navigationLines ){
+          setNavigationLines(navigationLines);
+        }
+    })
   }
 
-  const fetchNavigationLines = async () => {
-    await finnshTransportService.fetchNavigationLines()
-      .then(navigationLines => {
-        setNavigationLines(navigationLines);
-      });
+  const updateLightBeacons =  (latestLatitude, latestLongitude) => {
+    finnshTransportService.updateLightBeacons(latestLongitude,latestLatitude)
+    .then( lightBeacons => {
+      if ( lightBeacons ){
+        setLightBeacons(lightBeacons);
+      }
+    })
   }
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -112,8 +116,6 @@ const Map = ({ navigation }) => {
     getWeather();
 
     loadVessels();
-    fetchLightBeacons();
-    fetchNavigationLines();
 
     let watchID = navigator.geolocation.watchPosition(
       //successCallback
@@ -126,6 +128,9 @@ const Map = ({ navigation }) => {
 
         firebaseService.updateVessel(coords.latitude, coords.longitude,
           coords.heading, coords.speed);
+
+        updateNavigationLines(coords.latitude, coords.longitude);
+        updateLightBeacons(coords.latitude, coords.longitude);
       },
       //errorCallBack
       (error) => {
@@ -228,6 +233,7 @@ const Map = ({ navigation }) => {
 
           <NavigationLine
             navigationLines={navigationLines}
+            isDarkMode={isDarkModeEnabled}
           />
 
         </MapView>
