@@ -32,8 +32,8 @@ const fetchLightBeacons = async () => {
         lightCoordinates.push(coordinates);
       }
       return lightCoordinates;
-    }).
-    catch(error => {
+    })
+    .catch(error => {
       console.log(error.message);
     });
 };

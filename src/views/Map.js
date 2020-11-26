@@ -1,10 +1,10 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useLayoutEffect } from 'react';
 import MapView, { Circle, PROVIDER_GOOGLE, } from 'react-native-maps';
 import Constants from 'expo-constants';
 import { Text, Container, View, Icon } from 'native-base';
 import firebase from 'firebase';
 import { StyleSheet, Dimensions, TouchableHighlight } from 'react-native';
-import { Boat, WeatherContainer, LightBeacon, NavigationLine } from '../components';
+import { Boat, WeatherContainer, LightBeacon, NavigationLine, NauticalWarning } from '../components';
 import { digiTrafficService, firebaseService } from '../services';
 import { Distance } from '../utilities';
 import { mapStyles } from '../styles';
@@ -31,6 +31,7 @@ const Map = ({ navigation }) => {
   const [isDarkModeEnabled, setIsDarkModeEnabled] = useState(false);
   const [lightBeacons, setLightBeacons] = useState([])
   const [navigationLines, setNavigationLines] = useState([]);
+  const [digiTrafficWarnings, setDigiTraficWarnings] = useState([]);
 
   const loadVessels = () => {
     firebaseService.getAllVessels().then(vessels => {
@@ -88,6 +89,16 @@ const Map = ({ navigation }) => {
       }
     })
   }
+
+  const fetchDigiTrafficWarnings = () => {
+    digiTrafficService.fetchNauticalWarnings()
+    .then( digiTrafficWarnings => {
+      if ( digiTrafficWarnings ) {
+        setDigiTraficWarnings(digiTrafficWarnings);
+      }
+    });
+  }
+
   useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () => (
@@ -114,13 +125,12 @@ const Map = ({ navigation }) => {
     }, 30000);
     */
     getWeather();
-
+    fetchDigiTrafficWarnings();
     loadVessels();
 
     let watchID = navigator.geolocation.watchPosition(
       //successCallback
       ({ coords }) => {
-
         setLastLatitude(coords.latitude);
         setLastLongitude(coords.longitude);
         setLastHeading(coords.heading);
@@ -158,11 +168,9 @@ const Map = ({ navigation }) => {
         };
 
         const updateVessels = vessels.map(vessel => {
-
           if (vessel.id === snapshot.val().userId) {
             return updateVessel;
           }
-
           return vessel;
         });
 
@@ -234,6 +242,10 @@ const Map = ({ navigation }) => {
           <NavigationLine
             navigationLines={navigationLines}
             isDarkMode={isDarkModeEnabled}
+          />
+
+          <NauticalWarning
+            nauticalWarnings={digiTrafficWarnings}
           />
 
         </MapView>
