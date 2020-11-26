@@ -1,22 +1,21 @@
-import React, { useEffect, useState } from 'react';
-import MapView, { Callout, Circle, PROVIDER_GOOGLE } from 'react-native-maps';
+import React, {useEffect, useState} from 'react';
+import MapView, { Circle, PROVIDER_GOOGLE, } from 'react-native-maps';
 import Constants from 'expo-constants';
-import { Text, Container, View, Button } from 'native-base';
+import { Text, Container, View, Icon } from 'native-base';
 import firebase from 'firebase';
-import { StyleSheet, Dimensions, Switch } from 'react-native';
-
-import { Boat, WeatherContainer } from '../components';
+import { StyleSheet, Dimensions, TouchableHighlight } from 'react-native';
+import { Boat, WeatherContainer, LightBeacon, NavigationLine } from '../components';
 import { digiTrafficService, firebaseService } from '../services';
 import { Distance } from '../utilities';
 import { mapStyles } from '../styles';
-
-
+import { finnshTransportService } from '../services/finnishTransportService';
 const apiURL = 'https://pfa.foreca.com';
 
-const Map = () => {
+const Map = ({ navigation }) => {
+
   const { width, height } = Dimensions.get('window');
   const ASPECT_RATIO = width / height;
-  const LATITUDE_DELTA = 0.005;
+  const LATITUDE_DELTA = 0.019;
   const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO;
   const METER_TO_KILOMETER_CONSTANT = 3.6;
   const METER_TO_KNOT_CONSTANT = 1.9438445;
@@ -30,6 +29,8 @@ const Map = () => {
   const [isCollisionDetected, setIsCollisionDetected] = useState(false);
   const [alertRadius, setAlertRadius] = useState(0.900); // In Kilometers
   const [isDarkModeEnabled, setIsDarkModeEnabled] = useState(false);
+  const [lightBeacons, setLightBeacons] = useState([])
+  const [navigationLines, setNavigationLines] = useState([]);
 
   const loadVessels = () => {
     firebaseService.getAllVessels().then(vessels => {
@@ -45,7 +46,6 @@ const Map = () => {
     previousState => !previousState);
 
   const getWeather = async () => {
-    //const data = { user: 'ngoc-bui', password: 'yySqoYelUSsKuPHoaP' }
     try {
       const tokenObject = await fetch(apiURL + '/authorize/token?user=' +
         Constants.manifest.extra.user + '&password=' +
@@ -71,6 +71,41 @@ const Map = () => {
     }
   };
 
+  const updateNavigationLines =  (latestLatitude, latestLongitude) => {
+    finnshTransportService.updateNavigationLines(latestLongitude,latestLatitude)
+      .then( navigationLines => {
+        if ( navigationLines ){
+          setNavigationLines(navigationLines);
+        }
+    })
+  }
+
+  const updateLightBeacons =  (latestLatitude, latestLongitude) => {
+    finnshTransportService.updateLightBeacons(latestLongitude,latestLatitude)
+    .then( lightBeacons => {
+      if ( lightBeacons ){
+        setLightBeacons(lightBeacons);
+      }
+    })
+  }
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <TouchableHighlight
+          activeOpacity={0.6}
+          underlayColor='#ffc13b'
+          style={{ margin: 10, padding: 5}}
+          onPress={() => { toggleSwitch() }}>
+          <View style={{ flex: 1, flexDirection: 'row' }}>
+            <Text style={{ marginRight: 5, marginTop: 2, fontSize: 20 }}>Mode</Text>
+            <Icon name='md-contrast' />
+          </View>
+        </TouchableHighlight>
+      )
+    });
+  }, [navigation], toggleSwitch);
+
+
   useEffect(() => {
     //fetch weather API every 3sec
     /*setInterval(() => {
@@ -93,6 +128,9 @@ const Map = () => {
 
         firebaseService.updateVessel(coords.latitude, coords.longitude,
           coords.heading, coords.speed);
+
+        updateNavigationLines(coords.latitude, coords.longitude);
+        updateLightBeacons(coords.latitude, coords.longitude);
       },
       //errorCallBack
       (error) => {
@@ -147,7 +185,7 @@ const Map = () => {
       navigator.geolocation.clearWatch(watchID);
     };
   }, []);
-//   <WeatherContainer weather={weather} />
+  //   <WeatherContainer weather={weather} />
 
   return (
     <Container>
@@ -188,6 +226,16 @@ const Map = () => {
               title={vessel.id}
             />
           ))}
+
+          <LightBeacon
+            lightBeacons={lightBeacons}
+          />
+
+          <NavigationLine
+            navigationLines={navigationLines}
+            isDarkMode={isDarkModeEnabled}
+          />
+
         </MapView>
         <View style={styles.speedContainer}>
           <Text style={styles.bubble}>
@@ -196,15 +244,6 @@ const Map = () => {
           <Text style={styles.bubble}>
             {(lastSpeed * METER_TO_KNOT_CONSTANT).toFixed(3)} Knots
           </Text>
-        </View>
-        <View style={styles.switchContainer}>
-          <Switch
-            trackColor={{ false: '#767577', true: '#f5f0e1' }}
-            thumbColor={isDarkModeEnabled ? '#ffc13b' : '#ffc13b'}
-            ios_backgroundColor="#3e3e3e"
-            onValueChange={toggleSwitch}
-            value={isDarkModeEnabled}
-          />
         </View>
       </View>
     </Container>
