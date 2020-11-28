@@ -32,14 +32,64 @@ const Map = ({ navigation }) => {
   const [lightBeacons, setLightBeacons] = useState([])
   const [navigationLines, setNavigationLines] = useState([]);
   const [digiTrafficWarnings, setDigiTraficWarnings] = useState([]);
+  const [vesselsInProximity, setVesselsInProximity] = useState([]);
 
-  const loadVessels = () => {
-    firebaseService.getAllVessels().then(vessels => {
-      setVessels(vessels);
-      const proximityAlert = vessels.some(
-        vessel => Distance.isDistanceLessThen(vessel, lastLatitude,
-          lastLongitude, alertRadius));
+  firebaseService.detachAllFirebaseCallbacks();
+
+  //child_changed
+  firebase.database().ref('/vessels').on('child_changed', snapshot => {
+    if (!(snapshot.val().userId === firebase.auth().currentUser.uid)) {
+
+      const updateVessel = {
+        id: snapshot.key,
+        latitude: snapshot.val().latitude,
+        longitude: snapshot.val().longitude,
+        heading: snapshot.val().heading,
+        speed: snapshot.val().speed,
+        hasMayDay: snapshot.val().hasMayDay,
+      };
+
+      const updateVessels = vessels.map(vessel => {
+        if (vessel.id === snapshot.val().userId) {
+          return updateVessel;
+        }
+        return vessel;
+      });
+
+      setVessels(updateVessels);
+
+      const proximityAlert = Distance.isDistanceLessThen(updateVessel,
+        lastLatitude, lastLongitude, alertRadius);
+
       setIsCollisionDetected(proximityAlert);
+    }
+  });
+
+/*  firebaseService.subscribeToVessels(vessels)
+  .then(newVessels => {
+    console.log('newVessels', newVessels);
+    setVessels(newVessels);
+  });*/
+
+
+  const loadVessels =  async () => {
+    await firebaseService.getAllVessels().then(vesselsFromFirebase => {
+      console.log('loadVessels Vessels', vesselsFromFirebase)
+      setVessels(vesselsFromFirebase);
+
+      const vesselsInProximity = vesselsFromFirebase.filter(vessel => Distance.isDistanceLessThen(vessel, lastLatitude,
+        lastLongitude, alertRadius) );
+
+      setVesselsInProximity(vesselsInProximity);
+      /*const proximityAlert = vesselsFromFirebase.some(
+        vessel => Distance.isDistanceLessThen(vessel, lastLatitude,
+          lastLongitude, alertRadius));*/
+      //    []
+      if ( vesselsInProximity.length > 0 ){
+        console.log('Hello', vesselsInProximity.length );
+        setIsCollisionDetected(true);
+      }
+
     });
   };
 
@@ -72,7 +122,7 @@ const Map = ({ navigation }) => {
     }
   };
 
-  const updateNavigationLines =  (latestLatitude, latestLongitude) => {
+  const updateNavigationLines =  async (latestLatitude, latestLongitude) => {
     finnshTransportService.updateNavigationLines(latestLongitude,latestLatitude)
       .then( navigationLines => {
         if ( navigationLines ){
@@ -81,7 +131,7 @@ const Map = ({ navigation }) => {
     })
   }
 
-  const updateLightBeacons =  (latestLatitude, latestLongitude) => {
+  const updateLightBeacons =  async (latestLatitude, latestLongitude) => {
     finnshTransportService.updateLightBeacons(latestLongitude,latestLatitude)
     .then( lightBeacons => {
       if ( lightBeacons ){
@@ -90,10 +140,11 @@ const Map = ({ navigation }) => {
     })
   }
 
-  const fetchDigiTrafficWarnings = () => {
+  const fetchDigiTrafficWarnings = async () => {
     digiTrafficService.fetchNauticalWarnings()
     .then( digiTrafficWarnings => {
-      if ( digiTrafficWarnings ) {
+      console.log('fetchDigiTrafficWarnings', digiTrafficWarnings)
+      if ( digiTrafficWarnings.length > 0 ) {
         setDigiTraficWarnings(digiTrafficWarnings);
       }
     });
@@ -116,19 +167,9 @@ const Map = ({ navigation }) => {
     });
   }, [navigation], toggleSwitch);
 
+  const subscribeToLocationChange = () => {
 
-  useEffect(() => {
-    //fetch weather API every 3sec
-    /*setInterval(() => {
-      getWeather();
-      //console.log('weather updated');
-    }, 30000);
-    */
-    getWeather();
-    fetchDigiTrafficWarnings();
-    loadVessels();
-
-    let watchID = navigator.geolocation.watchPosition(
+    return navigator.geolocation.watchPosition(
       //successCallback
       ({ coords }) => {
         setLastLatitude(coords.latitude);
@@ -153,44 +194,27 @@ const Map = ({ navigation }) => {
         distanceFilter: 1,
       },
     );
+  };
 
-    //child_changed
-    firebase.database().ref('/vessels').on('child_changed', snapshot => {
+  useEffect(() => {
+    //fetch weather API every 3sec
+    /*setInterval(() => {
+      getWeather();
+      //console.log('weather updated');
+    }, 30000);
+    */
+    getWeather();
 
-      if (!(snapshot.val().userId === firebase.auth().currentUser.uid)) {
-        const updateVessel = {
-          id: snapshot.key,
-          latitude: snapshot.val().latitude,
-          longitude: snapshot.val().longitude,
-          heading: snapshot.val().heading,
-          speed: snapshot.val().speed,
-          hasMayDay: snapshot.val().hasMayDay,
-        };
+    //fetchDigiTrafficWarnings();
 
-        const updateVessels = vessels.map(vessel => {
-          if (vessel.id === snapshot.val().userId) {
-            return updateVessel;
-          }
-          return vessel;
-        });
+    loadVessels();
 
-        const proximityAlert = Distance.isDistanceLessThen(updateVessel,
-          lastLatitude, lastLongitude, alertRadius);
-
-        if (proximityAlert) {
-          setIsCollisionDetected(proximityAlert);
-        }
-
-        setVessels(updateVessels);
-      }
-    });
-
-    //TODO child_add, child_removed
+    let watchId = subscribeToLocationChange();
 
     return () => {
 
       firebaseService.detachAllFirebaseCallbacks();
-      navigator.geolocation.clearWatch(watchID);
+      navigator.geolocation.clearWatch(watchId);
     };
   }, []);
   //   <WeatherContainer weather={weather} />
@@ -247,6 +271,17 @@ const Map = ({ navigation }) => {
           <NauticalWarning
             nauticalWarnings={digiTrafficWarnings}
           />
+
+{/*          {isCollisionDetected && <Circle
+            center={{
+              latitude: lastLatitude,
+              longitude: lastLongitude,
+            }}
+            //enter={alertZone.center}
+            radius={alertRadius * 1000}
+            fillColor={'rgba(255, 0, 0, 0.2)'}
+            strokeColor="rgba(0,0,0,0.5)"
+          />}*/}
 
         </MapView>
         <View style={styles.speedContainer}>

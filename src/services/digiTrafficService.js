@@ -3,10 +3,11 @@ const fetchLatest = () => {
   return fetch('https://meri.digitraffic.fi/api/v1/locations/latest')
   .then(res => res.json())
   .then( response => {
-    console.log('digiTrafic fetcNnauticalWarnings', response.features[0].geometry.coordinates);
+
     const responseLength = response.features.length;
-    console.log('Vessels length', responseLength)
+
     const digiTrafficVessels = [];
+
     if (responseLength >= 0 ) {
       let index = 0;
       while (index < responseLength) {
@@ -19,18 +20,21 @@ const fetchLatest = () => {
         index++
       }
     }
+
     return digiTrafficVessels;
   })
   .catch( ({message}) => console.log(message))
 }
 
-const fetchNauticalWarnings = () => {
+const fetchNauticalWarnings = async () => {
   return fetch('https://meri.digitraffic.fi/api/v1/nautical-warnings/published')
   .then(res => res.json())
     .then( response => {
+
       const responseLength = response.features.length;
-      console.log('Warnings length', responseLength)
+
       const nauticalWarnings = [];
+
       if (responseLength >= 0 ) {
         let index = 0;
         while (index < responseLength) {
@@ -43,7 +47,7 @@ const fetchNauticalWarnings = () => {
           index++
         }
       }
-      console.log('Warning as an object', nauticalWarnings);
+
       return nauticalWarnings;
     })
     .catch( ({message}) => console.log(message))
