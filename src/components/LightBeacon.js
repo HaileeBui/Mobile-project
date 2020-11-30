@@ -5,6 +5,8 @@ import beaconLight from '../assets/beacon.png';
 
 const LightBeacon = ({lightBeacons}) => {
 
+  const centerOfImage = {x:0.5,y:0.5}
+
   return (
     lightBeacons.map( (lightBeacon, index) => (
         <Marker
@@ -14,6 +16,7 @@ const LightBeacon = ({lightBeacons}) => {
             longitude: lightBeacon.longitude
           }}
           image={beaconLight}
+          anchor={centerOfImage}
         />
       ))
   );
