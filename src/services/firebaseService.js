@@ -31,18 +31,33 @@ const getAllVessels = async () => {
   return vessels;
 }
 
-// takes lat and long,
-// order and filter
-const listenToChangesInRegion = async() => {
-  firebase
-    .database()
-    .ref('/vessels')
-    .orderByChild('latitude')
-    .startAt(60.1581)
-    .endAt(60.1590)
-    .on('child_changed', snapshot => {
-      console.log('A Location change has been observed', snapshot.val());
-  })
+const subscribeToVessels = async (vessels) => {
+
+  let newVessels = [];
+  firebase.database().ref('/vessels').on('child_changed', snapshot => {
+    if (!(snapshot.val().userId === firebase.auth().currentUser.uid)) {
+
+      const updateVessel = {
+        id: snapshot.key,
+        latitude: snapshot.val().latitude,
+        longitude: snapshot.val().longitude,
+        heading: snapshot.val().heading,
+        speed: snapshot.val().speed,
+        hasMayDay: snapshot.val().hasMayDay,
+      };
+
+      const updateVessels = vessels.map(vessel => {
+        if (vessel.id === snapshot.val().userId) {
+          return updateVessel;
+        }
+        return vessel;
+      });
+
+      newVessels = updateVessels;
+    }
+  });
+
+  return newVessels;
 }
 
 const detachAllFirebaseCallbacks = () => {
@@ -66,9 +81,9 @@ const updateVessel = (latitude, longitude, heading, speed) => {
 
 export const firebaseService = {
   getAllVessels,
-  listenToChangesInRegion,
   detachAllFirebaseCallbacks,
   updateVessel,
+  subscribeToVessels,
 }
 
 LogBox.ignoreLogs (['Setting a timer']);
