@@ -24,15 +24,32 @@ const Sos = () => {
   const sendLocation = async (loc) => {
     let location = await Location.getCurrentPositionAsync({});
     setLocation(location);
-    firebase.database().ref('/sos/' + firebase.auth().currentUser.uid).set({
-      user: firebase.auth().currentUser.uid,
-      latitude: loc.coords.latitude,
-      longitude: loc.coords.longitude,
-      created: Date().toLocaleString(),
-      active: true,
-      cancelTime: Date().toLocaleString(),
-      rescued: false,
-    });
+    console.log('location', location)
+    firebase.database().ref('/sos/' + firebase.auth().currentUser.uid)
+        .on('value', (snapshot) => {
+          if (snapshot.exists()) {
+            firebase.database().ref('/sos/' + firebase.auth().currentUser.uid).update({
+              user: firebase.auth().currentUser.uid,
+              latitude: loc.coords.latitude,
+              longitude: loc.coords.longitude,
+              created: Date().toLocaleString(),
+              active: true,
+              cancelTime: Date().toLocaleString(),
+              rescued: false,
+            });
+          } else {
+            firebase.database().ref('/sos/' + firebase.auth().currentUser.uid).set({
+              user: firebase.auth().currentUser.uid,
+              latitude: loc.coords.latitude,
+              longitude: loc.coords.longitude,
+              created: Date().toLocaleString(),
+              active: true,
+              cancelTime: Date().toLocaleString(),
+              rescued: false,
+            });
+          }
+        })
+
     firebase.database().ref('/vessels/' + firebase.auth().currentUser.uid).update({
       hasMayDay: true,
     })

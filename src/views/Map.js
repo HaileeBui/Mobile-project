@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState,useLayoutEffect} from 'react';
 import MapView, { Circle, PROVIDER_GOOGLE, } from 'react-native-maps';
 import Constants from 'expo-constants';
 import { Text, Container, View, Icon } from 'native-base';
