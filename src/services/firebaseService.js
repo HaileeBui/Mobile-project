@@ -9,7 +9,7 @@ const getAllVessels = async () => {
   .ref('/vessels')
   .once('value')
     .then( ( snapshot ) => {
-
+    //console.log('snapshot getAllVessels', snapshot);
     let entries = [];
       snapshot.forEach ( vessel => {
 
@@ -60,7 +60,7 @@ const subscribeToVessels = async (vessels) => {
   return newVessels;
 }
 
-const detachAllFirebaseCallbacks = () => {
+const detachAllFirebaseCallbacksForVessels = () => {
   firebase.database()
     .ref('/vessels')
     .off()
@@ -75,13 +75,13 @@ const updateVessel = (latitude, longitude, heading, speed) => {
     heading: heading,
     speed: speed,
   }).then(r => {
-    console.log('Vessel location uploaded');
+    //console.log('Vessel location uploaded');
   })
 }
 
 export const firebaseService = {
   getAllVessels,
-  detachAllFirebaseCallbacks,
+  detachAllFirebaseCallbacksForVessels,
   updateVessel,
   subscribeToVessels,
 }
