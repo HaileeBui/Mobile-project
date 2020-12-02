@@ -5,10 +5,10 @@ import { Text, Container, View, Icon } from 'native-base';
 import firebase from 'firebase';
 import { StyleSheet, Dimensions, TouchableHighlight } from 'react-native';
 import { Boat, WeatherContainer, LightBeacon, NavigationLine, NauticalWarning } from '../components';
-import { digiTrafficService, firebaseService } from '../services';
+import { digiTrafficService, firebaseService, finnshTransportService } from '../services';
 import { Distance } from '../utilities';
 import { mapStyles } from '../styles';
-import { finnshTransportService } from '../services/finnishTransportService';
+
 const apiURL = 'https://pfa.foreca.com';
 
 const Map = ({ navigation }) => {
@@ -33,8 +33,10 @@ const Map = ({ navigation }) => {
   const [navigationLines, setNavigationLines] = useState([]);
   const [digiTrafficWarnings, setDigiTraficWarnings] = useState([]);
   const [vesselsInProximity, setVesselsInProximity] = useState([]);
+  const [isLocationUpdateFirstTime, setOnLocationUpdateFirstTime] = useState(false);
+  const [isVesselsFirstLoad, setOnVesselsFirstLoad] = useState(false);
 
-  firebaseService.detachAllFirebaseCallbacks();
+  firebaseService.detachAllFirebaseCallbacksForVessels();
 
   //child_changed
   firebase.database().ref('/vessels').on('child_changed', snapshot => {
@@ -57,39 +59,34 @@ const Map = ({ navigation }) => {
       });
 
       setVessels(updateVessels);
-
+      // true, false
       const proximityAlert = Distance.isDistanceLessThen(updateVessel,
         lastLatitude, lastLongitude, alertRadius);
 
-      setIsCollisionDetected(proximityAlert);
+      if ( proximityAlert ){
+        if ( !vesselsInProximity.some( vesselInProximity => vesselInProximity.id === updateVessel.id) ) {
+          setVesselsInProximity([...vesselsInProximity, updateVessel]);
+        }
+      } else {
+        const newProximityVessels = vesselsInProximity.filter( vesselInProximity => vesselInProximity.id !== updateVessel.id );
+        setVesselsInProximity(newProximityVessels);
+      }
     }
   });
 
-/*  firebaseService.subscribeToVessels(vessels)
-  .then(newVessels => {
-    console.log('newVessels', newVessels);
-    setVessels(newVessels);
-  });*/
+  /*  firebaseService.subscribeToVessels(vessels)
+    .then(newVessels => {
+      console.log('newVessels', newVessels);
+      setVessels(newVessels);
+    });*/
 
 
-  const loadVessels =  async () => {
-    await firebaseService.getAllVessels().then(vesselsFromFirebase => {
-      console.log('loadVessels Vessels', vesselsFromFirebase)
+  const loadVessels = () => {
+     firebaseService.getAllVessels().then(vesselsFromFirebase => {
       setVessels(vesselsFromFirebase);
-
-      const vesselsInProximity = vesselsFromFirebase.filter(vessel => Distance.isDistanceLessThen(vessel, lastLatitude,
-        lastLongitude, alertRadius) );
-
-      setVesselsInProximity(vesselsInProximity);
-      /*const proximityAlert = vesselsFromFirebase.some(
-        vessel => Distance.isDistanceLessThen(vessel, lastLatitude,
-          lastLongitude, alertRadius));*/
-      //    []
-      if ( vesselsInProximity.length > 0 ){
-        console.log('Hello', vesselsInProximity.length );
-        setIsCollisionDetected(true);
+      if ( !isVesselsFirstLoad ) {
+        setOnVesselsFirstLoad(true);
       }
-
     });
   };
 
@@ -122,19 +119,19 @@ const Map = ({ navigation }) => {
     }
   };
 
-  const updateNavigationLines =  async (latestLatitude, latestLongitude) => {
+  const updateNavigationLines = (latestLatitude, latestLongitude) => {
     finnshTransportService.updateNavigationLines(latestLongitude,latestLatitude)
       .then( navigationLines => {
-        if ( navigationLines ){
+        if ( navigationLines && navigationLines.length > 0 ){
           setNavigationLines(navigationLines);
         }
     })
   }
 
-  const updateLightBeacons =  async (latestLatitude, latestLongitude) => {
+  const updateLightBeacons =  (latestLatitude, latestLongitude) => {
     finnshTransportService.updateLightBeacons(latestLongitude,latestLatitude)
     .then( lightBeacons => {
-      if ( lightBeacons ){
+      if ( lightBeacons && lightBeacons.length > 0 ){
         setLightBeacons(lightBeacons);
       }
     })
@@ -143,12 +140,47 @@ const Map = ({ navigation }) => {
   const fetchDigiTrafficWarnings = async () => {
     digiTrafficService.fetchNauticalWarnings()
     .then( digiTrafficWarnings => {
-      console.log('fetchDigiTrafficWarnings', digiTrafficWarnings)
-      if ( digiTrafficWarnings.length > 0 ) {
+      //console.log('fetchDigiTrafficWarnings', digiTrafficWarnings)
+      if ( digiTrafficWarnings && digiTrafficWarnings.length > 0 ) {
         setDigiTraficWarnings(digiTrafficWarnings);
       }
     });
   }
+
+  const subscribeToLocationChange = () => {
+
+    return navigator.geolocation.watchPosition(
+      //successCallback
+      ({ coords }) => {
+        setLastLatitude(coords.latitude);
+        setLastLongitude(coords.longitude);
+        setLastHeading(coords.heading);
+        setLastSpeed(coords.speed);
+
+        firebaseService.updateVessel(coords.latitude, coords.longitude,
+          coords.heading, coords.speed);
+
+        if (!isLocationUpdateFirstTime) {
+          setOnLocationUpdateFirstTime(true);
+        }
+
+        // TODO proximity check after user location update, DB change updates proximity too.
+
+        updateNavigationLines(coords.latitude, coords.longitude);
+        updateLightBeacons(coords.latitude, coords.longitude);
+      },
+      //errorCallBack
+      (error) => {
+        console.log('Error: ' + error.message);
+      },
+      //options:
+      {
+        enableHighAccuracy: true,
+        maximumAge: 1000,
+        distanceFilter: 1,
+      },
+    );
+  };
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -167,57 +199,47 @@ const Map = ({ navigation }) => {
     });
   }, [navigation], toggleSwitch);
 
-  const subscribeToLocationChange = () => {
-
-    return navigator.geolocation.watchPosition(
-      //successCallback
-      ({ coords }) => {
-        setLastLatitude(coords.latitude);
-        setLastLongitude(coords.longitude);
-        setLastHeading(coords.heading);
-        setLastSpeed(coords.speed);
-
-        firebaseService.updateVessel(coords.latitude, coords.longitude,
-          coords.heading, coords.speed);
-
-        updateNavigationLines(coords.latitude, coords.longitude);
-        updateLightBeacons(coords.latitude, coords.longitude);
-      },
-      //errorCallBack
-      (error) => {
-        console.log('Error: ' + error.message);
-      },
-      //options:
-      {
-        enableHighAccuracy: true,
-        maximumAge: 1000,
-        distanceFilter: 1,
-      },
-    );
-  };
 
   useEffect(() => {
-    //fetch weather API every 3sec
-    /*setInterval(() => {
-      getWeather();
-      //console.log('weather updated');
-    }, 30000);
-    */
+
     getWeather();
 
     //fetchDigiTrafficWarnings();
-
-    loadVessels();
 
     let watchId = subscribeToLocationChange();
 
     return () => {
 
-      firebaseService.detachAllFirebaseCallbacks();
+      firebaseService.detachAllFirebaseCallbacksForVessels();
       navigator.geolocation.clearWatch(watchId);
     };
   }, []);
-  //   <WeatherContainer weather={weather} />
+
+  useEffect( () => {
+    if ( isLocationUpdateFirstTime ) {
+      loadVessels();
+    }
+  }, [isLocationUpdateFirstTime]);
+
+  useEffect( () => {
+     if ( isVesselsFirstLoad ){
+      const vesselsInProximity = vessels.filter(vessel => {
+        return Distance.isDistanceLessThen(vessel, lastLatitude,
+          lastLongitude, alertRadius);
+      });
+
+      setVesselsInProximity(vesselsInProximity);
+    }
+
+  }, [isVesselsFirstLoad]);
+
+  useEffect(() => {
+    if ( vesselsInProximity.length > 0 ){
+      setIsCollisionDetected(true);
+    } else {
+      setIsCollisionDetected(false);
+    }
+  }, [vesselsInProximity]);
 
   return (
     <Container>
@@ -271,8 +293,8 @@ const Map = ({ navigation }) => {
           <NauticalWarning
             nauticalWarnings={digiTrafficWarnings}
           />
-
-{/*          {isCollisionDetected && <Circle
+          {/* TODO move following code to new component ProximityAlert*/}
+          {isCollisionDetected && <Circle
             center={{
               latitude: lastLatitude,
               longitude: lastLongitude,
@@ -281,15 +303,16 @@ const Map = ({ navigation }) => {
             radius={alertRadius * 1000}
             fillColor={'rgba(255, 0, 0, 0.2)'}
             strokeColor="rgba(0,0,0,0.5)"
-          />}*/}
+          /> }
 
         </MapView>
+        {/* TODO move following code to new component SpeedMeter*/}
         <View style={styles.speedContainer}>
           <Text style={styles.bubble}>
-            {(lastSpeed * METER_TO_KILOMETER_CONSTANT).toFixed(3)} Km/h
+            {(lastSpeed * METER_TO_KILOMETER_CONSTANT).toFixed(1)} Km/h
           </Text>
           <Text style={styles.bubble}>
-            {(lastSpeed * METER_TO_KNOT_CONSTANT).toFixed(3)} Knots
+            {(lastSpeed * METER_TO_KNOT_CONSTANT).toFixed(1)} Knots
           </Text>
         </View>
       </View>

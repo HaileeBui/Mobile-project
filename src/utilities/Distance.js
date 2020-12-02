@@ -8,6 +8,7 @@ const isDistanceLessThen = (otherVessel, lastLatitude, lastLongitude, alertRadiu
     (1 - cos((otherVessel.longitude - lastLongitude) * PI))/2;
 
   let distance = EARTH_DIAMETER_IN_KM * Math.asin(Math.sqrt(haverSine));
+  //console.log( otherVessel.id, 'Distance', distance, 'AlertRadius', alertRadius);
 
   return distance < alertRadius;
 }
