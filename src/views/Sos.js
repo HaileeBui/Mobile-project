@@ -21,41 +21,49 @@ const Sos = () => {
     Linking.openURL(phoneNumber);
   };
 
-  const sendLocation = async (loc) => {
-    let location = await Location.getCurrentPositionAsync({});
-    setLocation(location);
-    console.log('location', location)
-    firebase.database().ref('/sos/' + firebase.auth().currentUser.uid)
-        .on('value', (snapshot) => {
-          if (snapshot.exists()) {
-            firebase.database().ref('/sos/' + firebase.auth().currentUser.uid).update({
-              user: firebase.auth().currentUser.uid,
-              latitude: loc.coords.latitude,
-              longitude: loc.coords.longitude,
-              created: Date().toLocaleString(),
-              active: true,
-              cancelTime: Date().toLocaleString(),
-              rescued: false,
-            });
-          } else {
-            firebase.database().ref('/sos/' + firebase.auth().currentUser.uid).set({
-              user: firebase.auth().currentUser.uid,
-              latitude: loc.coords.latitude,
-              longitude: loc.coords.longitude,
-              created: Date().toLocaleString(),
-              active: true,
-              cancelTime: Date().toLocaleString(),
-              rescued: false,
-            });
-          }
-        })
+  const sendLocation = async () => {
+    navigator.geolocation.getCurrentPosition(
+      position => {
+        try {
+          //let location = await Location.getCurrentPositionAsync({});
+          setLocation(position);
+          console.log('location', position)
+          firebase.database().ref('/sos/' + firebase.auth().currentUser.uid).set({
+            user: firebase.auth().currentUser.uid,
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+            created: Date().toLocaleString(),
+            active: true,
+            cancelTime: Date().toLocaleString(),
+            rescued: false,
+          });
+          firebase.database().ref('/vessels/' + firebase.auth().currentUser.uid).update({
+            hasMayDay: true,
+          })
+        } catch (e) {
+          console.log('fetch location error', e);
+        }
+        /*firebase.database().ref('/sos/' + firebase.auth().currentUser.uid)
+            .on('value', (snapshot) => {
+              if (snapshot.exists()) {
+                firebase.database().ref('/sos/' + firebase.auth().currentUser.uid).update({
+                  user: firebase.auth().currentUser.uid,
+                  latitude: loc.coords.latitude,
+                  longitude: loc.coords.longitude,
+                  created: Date().toLocaleString(),
+                  active: true,
+                  cancelTime: Date().toLocaleString(),
+                  rescued: false,
+                });
+              } else {*/
 
-    firebase.database().ref('/vessels/' + firebase.auth().currentUser.uid).update({
-      hasMayDay: true,
-    })
-    alert();
+        //}
+        //})
+
+
+        alert();
+      })
   }
-
   const alert = () => {
     Alert.alert(
       'Location sent',
@@ -111,6 +119,14 @@ const Sos = () => {
           }
         })
     })();
+    return () => {
+      firebase.database()
+        .ref('/vessels')
+        .off()
+      firebase.database()
+        .ref('/sos')
+        .off()
+    }
   }, []);
 
 
@@ -127,7 +143,7 @@ const Sos = () => {
 
           <Button rounded
             style={{ backgroundColor: '#ff6e40', flex: 1 }}
-            onPress={() => sendLocation(location)}
+            onPress={() => sendLocation()}
           >
             <Text style={{ fontSize: 30, color: '#1e3d59' }}>Send location</Text>
           </Button>
