@@ -2,7 +2,7 @@ import React from 'react';
 import { StyleSheet,View, Text, } from 'react-native';
 import {Callout, Marker} from 'react-native-maps';
 
-import nauticalWarningIcon from '../assets/nauticalWarning.png'
+import nauticalWarningIcon from '../../assets/nauticalWarning.png'
 
 const NauticalWarning = ({nauticalWarnings}) => {
 

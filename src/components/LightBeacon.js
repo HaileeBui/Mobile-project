@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet } from 'react-native';
 import { Marker } from "react-native-maps";
-import beaconLight from '../assets/beacon.png';
+import beaconLight from '../../assets/beacon.png';
 
 const LightBeacon = ({lightBeacons}) => {
 
