@@ -3,9 +3,9 @@ import PropTypes from 'prop-types';
 import { StyleSheet } from 'react-native';
 import { Marker } from "react-native-maps";
 
-import userBoatImage from '../assets/user.png'
-import userNeedRescue from '../assets/needRescue.png'
-import otherUserIcon from '../assets/otheruser.png'
+import userBoatImage from '../../assets/user.png'
+import userNeedRescue from '../../assets/needRescue.png'
+import otherUserIcon from '../../assets/otheruser.png'
 
 //TODO fix boat png
 const Boat = ({ latitude, longitude, heading, speed, hasMayDay: hasMayDay, isThisUser, title}) => {
