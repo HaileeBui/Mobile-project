@@ -21,7 +21,7 @@ const Boat = ({ latitude, longitude, heading, speed, hasMayDay: hasMayDay, isThi
         longitude: longitude,
       }}
       rotation={ heading }
-      image={boatImage}
+      //image={boatImage}
       anchor={centerOfImage}
     />
   )
