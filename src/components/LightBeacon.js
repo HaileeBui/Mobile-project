@@ -15,7 +15,7 @@ const LightBeacon = ({lightBeacons}) => {
             latitude: lightBeacon.latitude,
             longitude: lightBeacon.longitude
           }}
-          image={beaconLight}
+          //image={beaconLight}
           anchor={centerOfImage}
         />
       ))

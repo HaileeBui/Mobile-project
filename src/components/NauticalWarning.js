@@ -16,7 +16,7 @@ const NauticalWarning = ({nauticalWarnings}) => {
           latitude: nauticalWarning.latitude,
           longitude: nauticalWarning.longitude
         }}
-        image={nauticalWarningIcon}
+        //image={nauticalWarningIcon}
         anchor={centerOfImage}
       >
         <Callout style={styles.plainView}>
