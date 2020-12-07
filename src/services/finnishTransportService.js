@@ -8,6 +8,9 @@ let topRightLatitude = 60.204050;
 const LATITUDE_DELTA_FOR_LINES_AND_BEACONS = 0.06
 const LONGITUDE_DELTA_FOR_LINES_AND_BEACONS = 0.16
 
+let isNavigationRequest= true;
+let isBeaconRequest= true;
+
 const fetchLightBeacons = async () => {
 
   return fetch('https://julkinen.vayla.fi/inspirepalvelu/avoin/wms?request=getmap&LAYERS=loistot&WIDTH=1400&HEIGHT=1400&FORMAT=application/vnd.google-earth.kml+xml&bbox='+bottomLeftLongitude+','+bottomLeftLatitude+','+topRightLongitude+','+topRightLatitude+'&srs=CRS:84').
@@ -31,6 +34,7 @@ const fetchLightBeacons = async () => {
 
         lightCoordinates.push(coordinates);
       }
+      isBeaconRequest = false;
       return lightCoordinates;
     })
     .catch(error => {
@@ -68,6 +72,7 @@ const fetchNavigationLines = async () => {
           coordinates: coordinates
         });
       }
+      isNavigationRequest = false;
       return navigationLine;
     }).
     catch(error => {
@@ -78,13 +83,21 @@ const fetchNavigationLines = async () => {
 const updateLightBeacons = async (userLongitude, userLatitude) => {
 
   setURI(userLongitude, userLatitude);
-  return fetchLightBeacons();
+  if (isBeaconRequest) {
+    return fetchLightBeacons();
+  } else {
+    return [];
+  }
 }
 
 const updateNavigationLines = async (userLongitude, userLatitude) => {
 
   setURI(userLongitude, userLatitude);
-  return fetchNavigationLines();
+  if (isNavigationRequest) {
+    return fetchNavigationLines();
+  } else {
+    return [];
+  }
 }
 
 const setURI = (userLongitude, userLatitude) => {
@@ -93,18 +106,19 @@ const setURI = (userLongitude, userLatitude) => {
     (userLatitude  >= topRightLatitude - (LATITUDE_DELTA_FOR_LINES_AND_BEACONS / 2 )) ||
     (userLongitude >= topRightLongitude - (LONGITUDE_DELTA_FOR_LINES_AND_BEACONS / 2 )) ||
     (userLatitude  <= bottomLeftLatitude - (LATITUDE_DELTA_FOR_LINES_AND_BEACONS / 2 )) ||
-    (userLatitude  <= bottomLeftLongitude - (LONGITUDE_DELTA_FOR_LINES_AND_BEACONS / 2 ))
+    (userLongitude  <= bottomLeftLongitude - (LONGITUDE_DELTA_FOR_LINES_AND_BEACONS / 2 ))
   ) {
 
     //const lowerLeftPoint = ''+(userLongitude - LONGITUDE_DELTA_FOR_LINES_AND_BEACONS)+','+(userLatitude - LATITUDE_DELTA_FOR_LINES_AND_BEACONS)+'';
     //const upperRightPoint = ''+(userLongitude + LONGITUDE_DELTA_FOR_LINES_AND_BEACONS)+','+(userLatitude + LATITUDE_DELTA_FOR_LINES_AND_BEACONS)+'';
     //const bBoxCoordinates = ''+lowerLeftPoint+','+upperRightPoint+''
-
     bottomLeftLongitude = userLongitude - LONGITUDE_DELTA_FOR_LINES_AND_BEACONS;
     bottomLeftLatitude = userLatitude - LATITUDE_DELTA_FOR_LINES_AND_BEACONS;
     topRightLongitude = userLongitude + LONGITUDE_DELTA_FOR_LINES_AND_BEACONS;
     topRightLatitude = userLatitude + LATITUDE_DELTA_FOR_LINES_AND_BEACONS;
 
+    isNavigationRequest = true;
+    isBeaconRequest = true;
   }
 }
 
