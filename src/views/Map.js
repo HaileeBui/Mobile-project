@@ -1,4 +1,4 @@
-import React, {useEffect, useState, useLayoutEffect } from 'react';
+import React, { useEffect, useState, useLayoutEffect } from 'react';
 import MapView, { Circle, PROVIDER_GOOGLE, } from 'react-native-maps';
 import Constants from 'expo-constants';
 import { Text, Container, View, Icon } from 'native-base';
@@ -8,6 +8,7 @@ import { User, WeatherContainer, LightBeacon, NavigationLine, NauticalWarning, D
 import { digiTrafficService, firebaseService, finnshTransportService } from '../services';
 import { Distance } from '../utilities';
 import { mapStyles } from '../styles';
+import Speedometer from 'react-native-speedometer-chart';
 
 const apiURL = 'https://pfa.foreca.com';
 
@@ -64,12 +65,12 @@ const Map = ({ navigation }) => {
       const proximityAlert = Distance.isDistanceLessThen(updateVessel,
         lastLatitude, lastLongitude, alertRadius);
 
-      if ( proximityAlert ){
-        if ( !vesselsInProximity.some( vesselInProximity => vesselInProximity.id === updateVessel.id) ) {
+      if (proximityAlert) {
+        if (!vesselsInProximity.some(vesselInProximity => vesselInProximity.id === updateVessel.id)) {
           setVesselsInProximity([...vesselsInProximity, updateVessel]);
         }
       } else {
-        const newProximityVessels = vesselsInProximity.filter( vesselInProximity => vesselInProximity.id !== updateVessel.id );
+        const newProximityVessels = vesselsInProximity.filter(vesselInProximity => vesselInProximity.id !== updateVessel.id);
         setVesselsInProximity(newProximityVessels);
       }
     }
@@ -83,9 +84,9 @@ const Map = ({ navigation }) => {
 
 
   const loadVessels = () => {
-     firebaseService.getAllVessels().then(vesselsFromFirebase => {
+    firebaseService.getAllVessels().then(vesselsFromFirebase => {
       setVessels(vesselsFromFirebase);
-      if ( !isVesselsFirstLoad ) {
+      if (!isVesselsFirstLoad) {
         setOnVesselsFirstLoad(true);
       }
     });
@@ -122,21 +123,21 @@ const Map = ({ navigation }) => {
   };
 
   const updateNavigationLines = (latestLatitude, latestLongitude) => {
-    finnshTransportService.updateNavigationLines(latestLongitude,latestLatitude)
-      .then( navigationLines => {
-        if ( navigationLines && navigationLines.length > 0 ){
+    finnshTransportService.updateNavigationLines(latestLongitude, latestLatitude)
+      .then(navigationLines => {
+        if (navigationLines && navigationLines.length > 0) {
           setNavigationLines(navigationLines);
         }
-    })
+      })
   }
 
-  const updateLightBeacons =  (latestLatitude, latestLongitude) => {
-    finnshTransportService.updateLightBeacons(latestLongitude,latestLatitude)
-    .then( lightBeacons => {
-      if ( lightBeacons && lightBeacons.length > 0 ){
-        setLightBeacons(lightBeacons);
-      }
-    })
+  const updateLightBeacons = (latestLatitude, latestLongitude) => {
+    finnshTransportService.updateLightBeacons(latestLongitude, latestLatitude)
+      .then(lightBeacons => {
+        if (lightBeacons && lightBeacons.length > 0) {
+          setLightBeacons(lightBeacons);
+        }
+      })
   }
 
   const updateSurroundingDigiTrafficVessels = (latestLatitude, latestLongitude) => {
@@ -211,7 +212,7 @@ const Map = ({ navigation }) => {
         <TouchableHighlight
           activeOpacity={0.6}
           underlayColor='#ffc13b'
-          style={{ margin: 10, padding: 5}}
+          style={{ margin: 10, padding: 5 }}
           onPress={() => { toggleSwitch() }}>
           <View style={{ flex: 1, flexDirection: 'row' }}>
             <Text style={{ marginRight: 5, marginTop: 2, fontSize: 20 }}>Mode</Text>
@@ -240,14 +241,14 @@ const Map = ({ navigation }) => {
     };
   }, []);
 
-  useEffect( () => {
-    if ( isLocationUpdateFirstTime ) {
+  useEffect(() => {
+    if (isLocationUpdateFirstTime) {
       loadVessels();
     }
   }, [isLocationUpdateFirstTime]);
 
-  useEffect( () => {
-     if ( isVesselsFirstLoad ){
+  useEffect(() => {
+    if (isVesselsFirstLoad) {
       const vesselsInProximity = vessels.filter(vessel => {
         return Distance.isDistanceLessThen(vessel, lastLatitude,
           lastLongitude, alertRadius);
@@ -259,7 +260,7 @@ const Map = ({ navigation }) => {
   }, [isVesselsFirstLoad]);
 
   useEffect(() => {
-    if ( vesselsInProximity.length > 0 ){
+    if (vesselsInProximity.length > 0) {
       setIsCollisionDetected(true);
     } else {
       setIsCollisionDetected(false);
@@ -325,17 +326,25 @@ const Map = ({ navigation }) => {
             radius={alertRadius * 1000}
             fillColor={'rgba(255, 0, 0, 0.2)'}
             strokeColor="rgba(0,0,0,0.5)"
-          /> }
+          />}
 
         </MapView>
         {/* TODO move following code to new component SpeedMeter*/}
         <View style={styles.speedContainer}>
-          <Text style={styles.bubble}>
-            {(lastSpeed * METER_TO_KILOMETER_CONSTANT).toFixed(1)} Km/h
-          </Text>
-          <Text style={styles.bubble}>
-            {(lastSpeed * METER_TO_KNOT_CONSTANT).toFixed(1)} Knots
-          </Text>
+          <Speedometer
+            value={(lastSpeed * METER_TO_KNOT_CONSTANT).toFixed(3)}
+            totalValue={35}
+            size={150}
+            outerColor="#ff6e40"
+            internalColor="#ffc13b"
+            showText
+            text={(lastSpeed * METER_TO_KILOMETER_CONSTANT).toFixed(3)}
+            textStyle={{ color: '#1e3d59' }}
+            showLabels
+            labelStyle={{ color: '#ff6e40' }}
+            labelFormatter={number => `${ number } knot`}
+            percentStyle={{ color: '#ff6e40' }}
+          />
         </View>
       </View>
     </Container>
