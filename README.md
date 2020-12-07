@@ -6,6 +6,7 @@ Vessels - to - vessels communication technology to minimize collisions. Smart ph
 ## Setup
 
 ## Installtions
+Once EXPO is installed in the smart phone the users are able to use this technologies by QR code reader.
 
 ## Examples of use
 
