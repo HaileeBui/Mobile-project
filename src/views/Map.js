@@ -4,7 +4,7 @@ import Constants from 'expo-constants';
 import { Text, Container, View, Icon } from 'native-base';
 import firebase from 'firebase';
 import { StyleSheet, Dimensions, TouchableHighlight } from 'react-native';
-import { Boat, WeatherContainer, LightBeacon, NavigationLine, NauticalWarning } from '../components';
+import { User, WeatherContainer, LightBeacon, NavigationLine, NauticalWarning, DigiTrafficVessels, OtherUsers } from '../components';
 import { digiTrafficService, firebaseService, finnshTransportService } from '../services';
 import { Distance } from '../utilities';
 import { mapStyles } from '../styles';
@@ -31,10 +31,11 @@ const Map = ({ navigation }) => {
   const [isDarkModeEnabled, setIsDarkModeEnabled] = useState(false);
   const [lightBeacons, setLightBeacons] = useState([])
   const [navigationLines, setNavigationLines] = useState([]);
-  const [digiTrafficWarnings, setDigiTraficWarnings] = useState([]);
+  const [digiTrafficWarnings, setDigiTrafficWarnings] = useState([]);
   const [vesselsInProximity, setVesselsInProximity] = useState([]);
   const [isLocationUpdateFirstTime, setOnLocationUpdateFirstTime] = useState(false);
   const [isVesselsFirstLoad, setOnVesselsFirstLoad] = useState(false);
+  const [digiTrafficVessels, setDigiTrafficVessels] = useState([]);
 
   firebaseService.detachAllFirebaseCallbacksForVessels();
 
@@ -59,7 +60,7 @@ const Map = ({ navigation }) => {
       });
 
       setVessels(updateVessels);
-      // true, false
+
       const proximityAlert = Distance.isDistanceLessThen(updateVessel,
         lastLatitude, lastLongitude, alertRadius);
 
@@ -93,6 +94,7 @@ const Map = ({ navigation }) => {
   const toggleSwitch = () => setIsDarkModeEnabled(
     previousState => !previousState);
 
+  // TODO make separate weather service
   const getWeather = async () => {
     try {
       const tokenObject = await fetch(apiURL + '/authorize/token?user=' +
@@ -137,12 +139,32 @@ const Map = ({ navigation }) => {
     })
   }
 
+  const updateSurroundingDigiTrafficVessels = (latestLatitude, latestLongitude) => {
+    digiTrafficService.fetchSurroundingVessels (38, latestLongitude,latestLatitude)
+    .then( digiVessels => {
+      if ( digiVessels && digiVessels.length > 0 ){
+        //setLightBeacons(lightBeacons);
+        console.log('DigiTraffic Srounding vessels count: ', digiVessels.length);
+      }
+    })
+  }
+
   const fetchDigiTrafficWarnings = async () => {
     digiTrafficService.fetchNauticalWarnings()
     .then( digiTrafficWarnings => {
       //console.log('fetchDigiTrafficWarnings', digiTrafficWarnings)
       if ( digiTrafficWarnings && digiTrafficWarnings.length > 0 ) {
-        setDigiTraficWarnings(digiTrafficWarnings);
+        setDigiTrafficWarnings(digiTrafficWarnings);
+      }
+    });
+  }
+
+  const loadDigiTrafficVesselsFromLastTwoHours = () => {
+
+    digiTrafficService.fetchVesselsFromLastTwoHours()
+    .then(latestVessels => {
+      if ( latestVessels && latestVessels.length > 0 ) {
+        setDigiTrafficVessels(latestVessels);
       }
     });
   }
@@ -168,6 +190,7 @@ const Map = ({ navigation }) => {
 
         updateNavigationLines(coords.latitude, coords.longitude);
         updateLightBeacons(coords.latitude, coords.longitude);
+        //updateSurroundingDigiTrafficVessels(coords.latitude, coords.longitude);
       },
       //errorCallBack
       (error) => {
@@ -207,6 +230,8 @@ const Map = ({ navigation }) => {
     //fetchDigiTrafficWarnings();
 
     let watchId = subscribeToLocationChange();
+
+    loadDigiTrafficVesselsFromLastTwoHours();
 
     return () => {
 
@@ -258,7 +283,7 @@ const Map = ({ navigation }) => {
           showsUserLocation={true}
           customMapStyle={(isDarkModeEnabled ? mapStyles.darkMode : [])}
         >
-          <Boat
+          <User
             key={0}
             latitude={lastLatitude}
             longitude={lastLongitude}
@@ -269,17 +294,9 @@ const Map = ({ navigation }) => {
             isThisUser={true}
           />
 
-          {vessels.map((vessel, index) => (
-            <Boat
-              key={vessel.id}
-              latitude={vessel.latitude}
-              heading={vessel.heading}
-              longitude={vessel.longitude}
-              speed={vessel.speed}
-              hasMayDay={vessel.hasMayDay}
-              title={vessel.id}
-            />
-          ))}
+          <OtherUsers
+          vessels={vessels}
+          />
 
           <LightBeacon
             lightBeacons={lightBeacons}
@@ -293,6 +310,11 @@ const Map = ({ navigation }) => {
           <NauticalWarning
             nauticalWarnings={digiTrafficWarnings}
           />
+
+          <DigiTrafficVessels
+            digiTrafficVessels={digiTrafficVessels}
+          />
+
           {/* TODO move following code to new component ProximityAlert*/}
           {isCollisionDetected && <Circle
             center={{

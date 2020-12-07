@@ -8,7 +8,7 @@ const LightBeacon = ({lightBeacons}) => {
   const centerOfImage = {x:0.5,y:0.5}
 
   return (
-    lightBeacons.map( (lightBeacon, index) => (
+    lightBeacons && lightBeacons.map( (lightBeacon, index) => (
         <Marker
           key={index}
           coordinate={{
