@@ -3,12 +3,12 @@ Vessels - to - vessels communication technology to minimize collisions. Smart ph
 
 ## Technologies
 
-##Setup
+## Setup
 
-##Installtions
+## Installtions
 
-##Examples of use
+## Examples of use
 
-##Features
+## Features
 
-##Images
+## Images
