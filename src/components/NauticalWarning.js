@@ -2,14 +2,14 @@ import React from 'react';
 import { StyleSheet,View, Text, } from 'react-native';
 import {Callout, Marker} from 'react-native-maps';
 
-import nauticalWarningIcon from '../../assets/nauticalWarning.png'
+import nauticalWarningIcon from '../../assets/nauticalWarning.png';
 
 const NauticalWarning = ({nauticalWarnings}) => {
 
   const centerOfImage = {x:0.5,y:0.5}
 
   return (
-    nauticalWarnings.map( (nauticalWarning, index) => (
+    nauticalWarnings && nauticalWarnings.map( (nauticalWarning, index) => (
       <Marker
         key={index}
         coordinate={{
