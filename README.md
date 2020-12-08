@@ -14,11 +14,11 @@ Once EXPO is installed in the smart phone the users are able to use this technol
 ## Examples of use
 
 ## Features
-Track collision
-Track nearby rescue
-Track weather forecast
-Send rescue notification
-Track navigation line and beacon
+- Track collision
+- Track nearby rescue
+- Track weather forecast
+- Send rescue notification
+- Track navigation line and beacon
 
 
 ## Images
