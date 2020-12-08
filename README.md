@@ -22,3 +22,6 @@ Track navigation line and beacon
 
 
 ## Images
+
+##Contributions
+Pull requests are welcome for constructive updates. Require update tests as appropriate beforehand 
