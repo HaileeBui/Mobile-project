@@ -9,7 +9,7 @@ React Native, Markdown, Location
 ## Setup
 
 ## Installtions
-Once EXPO is installed in the smart phone the users are able to use this technologies by QR code reader. When the app is published in developer account, the users can find it in Apple store or Google play. 
+Once EXPO is installed in the smart phone the users are able to use this technologies by QR code reader. When the app is published in developer account, the users can find it in Apple store or Google play. [Link for the QR code](https://expo.io/@anwar-ulhaq/projects/cetema)
 
 ## Examples of use
 
