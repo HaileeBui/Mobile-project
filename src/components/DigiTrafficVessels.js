@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet } from 'react-native';
 import { Marker } from "react-native-maps";
-import digiTrafficVesselIcon from '../../assets/digiVessel.png'
+import digiTrafficVesselIcon from './../../assets/digiVessel.png'
 
 const DigiTrafficVessels = ({digiTrafficVessels}) => {
 
@@ -18,7 +18,7 @@ const DigiTrafficVessels = ({digiTrafficVessels}) => {
         longitude: digiTrafficVessel.longitude,
       }}
       rotation={ digiTrafficVessel.heading }
-      image={digiTrafficVesselIcon}
+      //image={digiTrafficVesselIcon}
       anchor={centerOfImage}
     />
     ))

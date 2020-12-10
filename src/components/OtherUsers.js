@@ -20,7 +20,7 @@ const OtherUsers = ({vessels}) => {
           longitude: vessel.longitude,
         }}
         rotation={ vessel.heading }
-        image={ vessel.hasMayDay ? userNeedRescue : otherUserIcon}
+        //image={ vessel.hasMayDay ? userNeedRescue : otherUserIcon }
         anchor={centerOfImage}
     />
     ))
