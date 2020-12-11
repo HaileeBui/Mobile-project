@@ -123,3 +123,8 @@ expo upload:ios
 <img src="Screens/Main.png" width="400"> <img src="Screens/Main-collision.png" width="400">
 <img src="Screens/Main%20rescue.png" width="400"><img src="Screens/Main-darkmode.png" width="400">
 
+## Demo (Expo server)
+
+You need to download Expo client app from Google PlayStore and scan this QR code.
+
+<img src="Screens/projectQR.png" width="400">
