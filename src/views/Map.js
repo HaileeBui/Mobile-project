@@ -228,7 +228,7 @@ const Map = ({ navigation }) => {
 
     getWeather();
 
-    //fetchDigiTrafficWarnings();
+    fetchDigiTrafficWarnings();
 
     let watchId = subscribeToLocationChange();
 
