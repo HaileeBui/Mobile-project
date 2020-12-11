@@ -127,4 +127,4 @@ expo upload:ios
 
 You need to download Expo client app from Google PlayStore and scan this QR code.
 
-<img src="Screen/projectQR.png" width="400">
+<img src="Screens/projectQR.png" width="400">
