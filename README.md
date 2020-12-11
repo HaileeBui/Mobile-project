@@ -126,4 +126,5 @@ expo upload:ios
 ## Demo (Expo server)
 
 You need to download Expo client app from Google PlayStore and scan this QR code.
+
 <img src="Screen/projectQR.png" width="400">
